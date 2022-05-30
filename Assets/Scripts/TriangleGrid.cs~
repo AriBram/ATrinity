@@ -1,0 +1,33 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class TriangleGrid
+{
+    private int a_dir;
+    private int b_dir;
+    private int c_dir;
+
+    private int[,,] gridArray;
+
+    public TriangleGrid(int a_dir, int b_dir, int c_dir)
+    {
+        this.a_dir = a_dir;
+        this.b_dir = b_dir;
+        this.c_dir = c_dir;
+
+        gridArray = new int[a_dir, b_dir, c_dir];
+
+        for(int a = -2; a < 3; a++)
+        {
+            for (int b = -2; b < 3; b++)
+            {
+                for (int c = 3; c > -2; c--)
+                {
+                    Debug.Log(a + "," + b + "," + c);
+                }
+            }
+        }
+    }
+
+}

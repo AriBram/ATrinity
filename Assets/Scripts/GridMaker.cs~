@@ -1,0 +1,12 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class GridMaker : MonoBehaviour
+{
+
+    private void Start()
+    {
+        TriangleGrid trinity = new TriangleGrid(5, 5, 5);
+    }
+}

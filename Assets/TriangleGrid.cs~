@@ -1,0 +1,16 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class TriangleGrid
+{
+    private int a_dir;
+    private int b_dir;
+    private int c_dir;
+
+    public Grid(int a_dir, int b_dir, int c_dir)
+    {
+
+    }
+
+}

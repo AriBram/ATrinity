@@ -1,0 +1,25 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+namespace Tools
+{
+    public class TextHelper
+    {
+        public static TextMesh WorldText(string text, Color color, Transform parent = null, int fontSize = 40, Vector3 localPosition = default)
+        {
+            GameObject gameObject = new GameObject("WorldText", typeof(TextMesh));
+            Transform transform = gameObject.transform;
+            transform.SetParent(parent, false);
+            transform.localPosition = localPosition;
+
+            TextMesh textMesh = gameObject.GetComponent<TextMesh>();
+            textMesh.text = text;
+            textMesh.fontSize = fontSize;
+            textMesh.color = (color == null ? Color.white : color);
+            return textMesh;
+        }
+
+    }
+
+}
