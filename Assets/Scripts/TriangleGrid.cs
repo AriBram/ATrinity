@@ -25,7 +25,7 @@ namespace ATrinity
         }
 
 
-        public TriangleGrid(int range, float edge, Vector3 startPosition, Func<int,int,int, TriangleCell<TCellObject>> createCellObject)
+        public TriangleGrid(int range, float edge, Vector3 startPosition, Func<TriangleGrid<TCellObject>, int,int,int, int, TCellObject> createCellObject)
         {
             this.range = range;
             this.edge = edge;
@@ -33,19 +33,19 @@ namespace ATrinity
 
             cellAmount = CellCount(range);
             gridArray = new (int, int, int, TriangleCell<TCellObject>)[cellAmount + 1];
-            cellArray = new TriangleCell<TCellObject>[cellAmount + 1];
+            cellArray = new TriangleCell<TCellObject>[cellAmount];
 
             int index = 0;
-            for (int a = -range; a < range; a++)
+            for (int a = -range; a <= range; a++)
             {
-                for (int b = -range; b < range; b++)
+                for (int b = -range; b <= range; b++)
                 {
-                    for (int c = -range; c < range; c++)
+                    for (int c = -range; c <= range; c++)
                     {
                         if (a + b + c == 1 || a + b + c == 2)
                         {
-                            TriangleCell<TCellObject> cell = new TriangleCell<TCellObject>(a, b, c, edge);
-                            cell.value = default(TCellObject);
+                            TriangleCell<TCellObject> cell = new TriangleCell<TCellObject>(a, b, c, this, index);
+                            cell.value = createCellObject(this, a,b,c, index);
 
                             cellArray[index] = cell;
                             gridArray[index++] = (a, b, c, cell);
@@ -63,7 +63,7 @@ namespace ATrinity
         {
             foreach(var cell in cellArray)
             {
-                cell.valueText = TextHelper.WorldText(cell.value.ToString(), Color.black, 20, cell.center + startPosition);
+                cell.valueText = TextHelper.WorldText(cell.value.ToString(), Color.black, 15, cell.center + startPosition);
                 Debug.DrawLine(cell.peaks[1] + startPosition, cell.peaks[0] + startPosition, Color.white, 100f);
                 Debug.DrawLine(cell.peaks[1] + startPosition, cell.peaks[2] + startPosition, Color.white, 100f);
                 Debug.DrawLine(cell.peaks[2] + startPosition, cell.peaks[0] + startPosition, Color.white, 100f);
@@ -73,11 +73,11 @@ namespace ATrinity
         private int CellCount(int range)
         {
             int count = 0;
-            for (int a = -range; a < range; a++)
+            for (int a = -range; a <= range; a++)
             {
-                for (int b = -range; b < range; b++)
+                for (int b = -range; b <= range; b++)
                 {
-                    for (int c = -range; c < range; c++)
+                    for (int c = -range; c <= range; c++)
                     {
                         if (a + b + c == 1 || a + b + c == 2) count++;
                     }
@@ -97,7 +97,6 @@ namespace ATrinity
                         if (cell.Item3 == c)
                         {
                             cell.Item4.value = value;
-                            cell.Item4.valueText.text = value.ToString();
                             OnValueChanged(this, new OnValueChangedEventArgs { index = index, a = a, b = b, c = c });
                         }
                 index++;
@@ -109,6 +108,11 @@ namespace ATrinity
             int a, b, c;
             GetTriangleCell(position - startPosition, out a, out b, out c);
             SetValue(a, b, c, value);
+        }
+
+        public void UpdateText(int index)
+        {
+            cellArray[index].valueText.text = cellArray[index].value.ToString();
         }
 
         public TCellObject GetValue(int a, int b, int c)
@@ -161,8 +165,10 @@ namespace ATrinity
         public int C => c;
 
         public TCellObject value;
-        public TextMesh valueText;
+        public TextMesh valueText = null;
+        public int index { get; private set; }
 
+        private TriangleGrid<TCellObject> grid;
         private float edge;
         private float hight;
         public Vector3 center { get; private set; }
@@ -170,14 +176,16 @@ namespace ATrinity
 
         public Vector3[] peaks { get; private set; }
 
-        public TriangleCell(int a, int b, int c, float edge = 1)
+        public TriangleCell(int a, int b, int c, TriangleGrid<TCellObject> grid, int index)
         {
             this.a = a;
             this.b = b;
             this.c = c;
-            this.edge = edge;
+            this.grid = grid;
+            this.index = index;
 
-            this.hight = edge * Mathf.Sqrt(3) / 2;
+            edge = grid.edge;
+            hight = edge * Mathf.Sqrt(3) / 2;
 
             topUp = a + b + c == 2;
             center = GetCellCenter();

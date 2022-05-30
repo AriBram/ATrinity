@@ -11,12 +11,14 @@ namespace ATrinity
         private TriangleGrid<PathNode> grid;
         private List<PathNode> openList;
         private List<PathNode> closedList;
+        private int range;
 
         public TriangleGrid<PathNode> GetGrid() => grid;
 
         public Pathfinding(int range, float edge)
         {
-            grid = new TriangleGrid<PathNode>(range, edge, Vector3.zero, (int a, int b, int c) => new TriangleCell<PathNode>(a,b,c));
+            this.range = range;
+            grid = new TriangleGrid<PathNode>(range, edge, Vector3.zero, (TriangleGrid<PathNode> g ,int a, int b, int c, int i) => new PathNode(g,a,b,c,i));
         }
 
         public List<PathNode> FindPath(int startA, int startB, int startC, int endA, int endB, int endC)
@@ -53,6 +55,11 @@ namespace ATrinity
                 foreach(PathNode neighNode in GetNeighbourList(currentNode))
                 {
                     if (closedList.Contains(neighNode)) continue;
+                    if (neighNode.isWall)
+                    {
+                        closedList.Add(neighNode);
+                        continue;
+                    }
 
                     int gCost = currentNode.g + 1;
                     if(gCost < neighNode.g)
@@ -72,7 +79,7 @@ namespace ATrinity
 
         private int StepDistance(PathNode node1, PathNode node2)
         {
-            return Mathf.Abs(node1.a - node2.a) + Mathf.Abs(node1.a - node2.a) + Mathf.Abs(node1.a - node2.a);
+            return Mathf.Abs(node1.a - node2.a) + Mathf.Abs(node1.b - node2.b) + Mathf.Abs(node1.c - node2.c);
         }
 
         private List<PathNode> CalculatePath(PathNode endNode)
@@ -94,15 +101,15 @@ namespace ATrinity
             List<PathNode> neighbourList = new List<PathNode>();
             if(node.a + node.b + node.c == 2) //If peak points up
             {
-                neighbourList.Add(GetNode(node.a - 1, node.b, node.c));
-                neighbourList.Add(GetNode(node.a, node.b - 1, node.c));
-                neighbourList.Add(GetNode(node.a, node.b, node.c - 1));
+                if (node.a - 1 >= -range) neighbourList.Add(GetNode(node.a - 1, node.b, node.c));
+                if (node.b - 1 >= -range) neighbourList.Add(GetNode(node.a, node.b - 1, node.c));
+                if (node.c - 1 >= -range) neighbourList.Add(GetNode(node.a, node.b, node.c - 1));
             }
             else //If peak points down
             {
-                neighbourList.Add(GetNode(node.a + 1, node.b, node.c));
-                neighbourList.Add(GetNode(node.a, node.b + 1, node.c));
-                neighbourList.Add(GetNode(node.a, node.b, node.c + 1));
+                if (node.a + 1 <= range) neighbourList.Add(GetNode(node.a + 1, node.b, node.c));
+                if (node.b + 1 <= range) neighbourList.Add(GetNode(node.a, node.b + 1, node.c));
+                if (node.c + 1 <= range) neighbourList.Add(GetNode(node.a, node.b, node.c + 1));
             }
 
             return neighbourList;
@@ -130,25 +137,32 @@ namespace ATrinity
         private TriangleGrid<PathNode> grid;
         public Vector3 center { get; private set; }
         public int a, b, c;
+        public int index;
         public int g, h, f;
 
+        public bool isWall;
         public PathNode prevNode; // Previous Node
 
-        public PathNode(TriangleGrid<PathNode> grid, int a, int b, int c)
+        public PathNode(TriangleGrid<PathNode> grid, int a, int b, int c, int index)
         {
             this.grid = grid;
             this.a = a;
             this.b = b;
             this.c = c;
+            this.index = index;
 
+            isWall = false;
             center = GetCellCenter();
         }
 
-        public void CalculateF() => f = g + h;
-
+        public void CalculateF()
+        {
+            f = g + h;
+            //grid.UpdateText(index);
+        }
         public override string ToString()
         {
-            return a + ":" + b + ":";
+            return null;
         }
 
         private Vector3 GetCellCenter()

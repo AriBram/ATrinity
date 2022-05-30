@@ -8,18 +8,16 @@ namespace ATrinity
 {
     public class GridVisual : MonoBehaviour
     {
-        private TriangleGrid<int> grid;
+        private TriangleGrid<PathNode> grid;
         private Mesh mesh;
-        private LineRenderer line;
 
         private void Awake()
         {
             mesh = new Mesh();
             GetComponent<MeshFilter>().mesh = mesh;
-            line = GetComponent<LineRenderer>();
         }
 
-        public void SetGrid(TriangleGrid<int> grid)
+        public void SetGrid(TriangleGrid<PathNode> grid)
         {
             this.grid = grid;
             CreateGridMesh();
@@ -27,9 +25,9 @@ namespace ATrinity
             grid.OnValueChanged += Grid_OnValueChanged;
         }
 
-        private void Grid_OnValueChanged(object sender, TriangleGrid<int>.OnValueChangedEventArgs e)
+        private void Grid_OnValueChanged(object sender, TriangleGrid<PathNode>.OnValueChangedEventArgs e)
         {
-            UpdateGridMesh(e.index);
+            SetMesh(e.index, Vec2r(1));
         }
 
         public void CreateGridMesh()
@@ -40,24 +38,27 @@ namespace ATrinity
 
             MeshArrays arrays = new MeshArrays(vertices, uv, triangles);
 
-            Vector2[] uvs = new Vector2[] { Vec2r(0), Vec2r(0), Vec2r(0), Vec2r(1) };
 
             for (int index = 0; index < grid.cellAmount; index++)
             {
+                Vector2[] uvs = SameUv(VecHalf(0.3f));
+                PathNode node = grid.cellArray[index].value;
+                if (node.isWall) uvs = SameUv(VecHalf(0));
                 arrays = CellMesh(index, arrays, uvs);
             }
 
             arrays.SetToMesh(mesh);
         }
 
-        private void UpdateGridMesh(int index)
+        public void SetMesh(int index, Vector2 uv)
         {
             MeshArrays arrays = new MeshArrays(mesh.vertices, mesh.uv, mesh.triangles);
-
-            float value = grid.cellArray[index].value * 0.005f;
-            arrays = CellMesh(index, arrays, SameUv(VecHalf(value)));
+            arrays = CellMesh(index, arrays, SameUv(uv));
             arrays.SetToMesh(mesh);
         }
+
+        public void SetMesh(PathNode node, Vector2 uv) => SetMesh(node.index, uv);
+
 
         // UV array with same values
         private Vector2[] SameUv(Vector2 uv) => new Vector2[] { uv, uv, uv, uv };
@@ -67,13 +68,14 @@ namespace ATrinity
         // Vector2 with 0.5 on x
         private Vector2 VecHalf(float value) => new Vector2(0.5f, value);
 
+
         // Create MeshArrays with new UV values for specific cell
         private MeshArrays CellMesh(int index, MeshArrays arrays, Vector2[] uvs)
         {
             Vector3[] vertices = arrays.vertices;
             Vector2[] uv = arrays.uv;
             int[] triangles = arrays.triangles;
-            TriangleCell<int> cell = grid.cellArray[index];
+            TriangleCell<PathNode> cell = grid.cellArray[index];
 
             //Debug.Log(index);
             int i = index * 4;

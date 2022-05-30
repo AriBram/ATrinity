@@ -238,6 +238,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 338a4da4c17834b82860f273d44bac53, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  gridRange: 5
+  cellEdge: 7
+  walls: 40
 --- !u!4 &1871318553
 Transform:
   m_ObjectHideFlags: 0
